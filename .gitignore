@@ -1,1 +1,19 @@
 node_modules
+
+# Postman
+.postman/
+postman/
+
+# Data (JSON "database")
+src/users.json
+
+# Build output
+dist/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
