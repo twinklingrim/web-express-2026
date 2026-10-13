@@ -5,7 +5,8 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon src/app.ts"
   },
   "author": "",
   "license": "ISC",
@@ -15,6 +16,8 @@
   "devDependencies": {
     "@types/express": "^5.0.6",
     "@types/node": "^26.6.2",
+    "nodemon": "^1.14.10",
+    "ts-node": "^10.9.2",
     "typescript": "^7.0.2"
   }
 }
