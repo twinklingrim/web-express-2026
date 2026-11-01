@@ -1,85 +1,85 @@
 import express, { type Request, type Response } from 'express';
-import fs from 'node:fs';
-import path from 'node:path';
 import usersMiddleware from '../middlewares/users-middleware.ts';
+import { User } from '../models/User.ts';
 
 const router = express.Router();
-const usersFilePath = path.join(import.meta.dirname, '../users.json');
-
-interface User {
-  id: number;
-  name: string;
-}
-
-function readUsers(): User[] {
-  const data = fs.readFileSync(usersFilePath, 'utf-8');
-  return JSON.parse(data) as User[];
-}
-
-function writeUsers(users: User[]): void {
-  fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2), 'utf-8');
-}
 
 router.use(usersMiddleware);
+router.use(express.urlencoded());
+router.use(express.json());
 
-router.get('/', (req: Request, res: Response) => {
-  res.json(readUsers());
+// GET /users — получить всех пользователей
+router.get('/', async (req: Request, res: Response) => {
+  try {
+    const users = await User.find();
+    res.status(200).json(users);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to fetch users' });
+  }
 });
 
-router.get('/:id', (req: Request, res: Response) => {
-  const user = readUsers().find((item) => item.id === Number(req.params.id));
+// GET /users/:id — получить одного пользователя по id
+router.get('/:id', async (req: Request, res: Response) => {
+  try {
+    const user = await User.findById(req.params.id);
 
-  if (!user) {
-    res.status(404).json({ message: 'Пользователь не найден' });
-    return;
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to fetch user' });
   }
-
-  res.json(user);
 });
 
-router.post('/', (req: Request, res: Response) => {
-  const users = readUsers();
-  const newUser: User = {
-    id: Date.now(),
-    name: req.body.name,
-  };
-
-  users.push(newUser);
-  writeUsers(users);
-
-  res.status(201).json(newUser);
+// POST /users — создать нового пользователя
+router.post('/', async (req: Request, res: Response) => {
+  try {
+    const user = await User.create(req.body);
+    res.status(201).json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ message: 'Failed to create user' });
+  }
 });
 
-router.patch('/:id', (req: Request, res: Response) => {
-  const users = readUsers();
-  const user = users.find((item) => item.id === Number(req.params.id));
+// PATCH /users/:id — обновить существующего пользователя
+router.patch('/:id', async (req: Request, res: Response) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
 
-  if (!user) {
-    res.status(404).json({ message: 'Пользователь не найден' });
-    return;
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ message: 'Failed to update user' });
   }
-
-  if (req.body.name) {
-    user.name = req.body.name;
-  }
-
-  writeUsers(users);
-  res.json(user);
 });
 
-router.delete('/:id', (req: Request, res: Response) => {
-  const users = readUsers();
-  const index = users.findIndex((item) => item.id === Number(req.params.id));
+// DELETE /users/:id — удалить пользователя из базы данных
+router.delete('/:id', async (req: Request, res: Response) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
 
-  if (index === -1) {
-    res.status(404).json({ message: 'Пользователь не найден' });
-    return;
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({ message: 'User deleted', user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to delete user' });
   }
-
-  const [deletedUser] = users.splice(index, 1);
-  writeUsers(users);
-
-  res.json(deletedUser);
 });
 
 export default router;
