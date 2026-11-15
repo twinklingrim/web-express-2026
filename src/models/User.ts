@@ -1,17 +1,18 @@
-import {Schema, model} from "mongoose";
-import { timeStamp } from "node:console";
+import { Schema, model } from "mongoose";
 
-const userSchema = new Schema ({
-    name:{
-        type: String, 
-        required: true
+const userSchema = new Schema(
+  {
+    name: {
+      type: String,
+      required: true,
     },
-    email:{
-        type: String, 
-        required: true,
-        unique: true
-    }
-         
-}, {timestamps: true})
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+  },
+  { timestamps: true }
+);
 
-export const User = model("User", userSchema)
+export const User = model("User", userSchema);
